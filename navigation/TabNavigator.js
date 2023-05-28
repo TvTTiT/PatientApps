@@ -9,6 +9,7 @@ import PasswordAndSecurityScreen from '../screens/homeScreens/PasswordAndSecurit
 import ScheduleScreen from '../screens/homeScreens/ScheduleScreen';
 import NotificationsScreen from '../screens/homeScreens/Notifications';
 import NewAppointmentScreen from '../screens/homeScreens/NewAppointmentScreen';
+import MessagesScreen from '../screens/homeScreens/MessagesScreen';
 //patient screens
 import NameScreen from '../screens/patientScreens/NameScreen';
 import EmailScreen from '../screens/patientScreens/EmailScreen';
@@ -42,13 +43,16 @@ const TabNavigator = ({ onLogout }) => {
           let iconName;
 
           if (route.name === 'Home') {
-            iconName = 'home';
+            iconName = 'analytics';
           } else if (route.name === 'Appointments') {
             iconName = 'calendar-outline';
           } else if (route.name === 'Settings') {
             iconName = 'settings';
           } else if (route.name === 'Notifications') {
             iconName = 'notifications-circle';
+          }
+          else if (route.name === 'Messages') {
+            iconName = 'mail-unread-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -61,6 +65,7 @@ const TabNavigator = ({ onLogout }) => {
       {/* Define each screen with its respective component */}
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Appointments" component={ScheduleScreen} />
+      <Tab.Screen name="Messages" component={MessagesScreen} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
       <Tab.Screen name="Settings">
         {(props) => <SettingScreen {...props} onLogout={onLogout} />}

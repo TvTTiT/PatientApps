@@ -30,4 +30,16 @@ export const styles = StyleSheet.create({
     right: 16,
     zIndex: 10,
   },
+  appointmentContent: {
+    paddingTop: 0,
+  },
+  appointmentName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  appointmentText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
 });

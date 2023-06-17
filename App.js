@@ -19,7 +19,6 @@ export default function App() {
     setIsLoggedIn(true);
     setUserID(userId);
     setPatientId(patientId);
-    console.log(patientId);
   };
 
   const handleLogout = () => {

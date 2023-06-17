@@ -22,12 +22,12 @@ export const styles = StyleSheet.create({
     height: 50,
     marginBottom: 20,
     justifyContent: 'center',
-    alignItems: 'center', // Add this line
-    padding: 20,
+    alignItems: 'center',
   },
   inputText: {
     height: 50,
     color: 'black',
+    paddingHorizontal: 20,
   },
   saveButton: {
     width: '80%',

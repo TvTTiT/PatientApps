@@ -4,6 +4,18 @@ import { Calendar } from 'react-native-calendars';
 import { styles } from '../../styles/homeStyles/NewAppointmentStyles';
 import { Ionicons } from '@expo/vector-icons';
 
+const DateSelectionButton = ({ selectedDate, onPress }) => {
+  return (
+    <TouchableOpacity style={styles.inputView} onPress={onPress}>
+      {selectedDate ? (
+        <Text style={styles.inputText}>{selectedDate}</Text>
+      ) : (
+        <Text style={styles.placeholderText}>Select Date</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 const NewAppointmentScreen = ({ navigation }) => {
   const [medicalProfessionalId, setMedicalProfessionalId] = useState('');
   const [date, setDate] = useState('');
@@ -38,13 +50,7 @@ const NewAppointmentScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <Text style={styles.title}>New Appointment</Text>
-      <TouchableOpacity style={styles.inputView} onPress={toggleCalendar}>
-        {selectedDate ? (
-          <Text style={styles.inputText}>{selectedDate}</Text>
-        ) : (
-          <Text style={styles.placeholderText}>Select Date</Text>
-        )}
-      </TouchableOpacity>
+      <DateSelectionButton selectedDate={selectedDate} onPress={toggleCalendar} />
       {showCalendar && (
         <Calendar
           onDayPress={handleDateSelection}

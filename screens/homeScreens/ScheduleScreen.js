@@ -1,53 +1,103 @@
-import React from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { Agenda } from 'react-native-calendars';
 import { Card } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../../styles/homeStyles/ScheduleStyles';
-
+import { supabase } from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
+import { Ionicons } from '@expo/vector-icons';
 const ScheduleScreen = ({ navigation }) => {
-  const items = {
-    '2023-05-27': [
-      {
-        name: 'Appointment 1',
-        medical_professional_id: 'Doctor 1',
-        time: '10:00 AM',
-        location: 'Clinic A',
-        purpose: 'Checkup',
-      },
-      {
-        name: 'Appointment 2',
-        medical_professional_id: 'Doctor 2',
-        time: '02:30 PM',
-        location: 'Clinic B',
-        purpose: 'Follow-up',
-      },
-    ],
-    '2023-05-28': [
-      {
-        name: 'Appointment 3',
-        medical_professional_id: 'Doctor 3',
-        time: '09:00 AM',
-        location: 'Clinic C',
-        purpose: 'Consultation',
-      },
-    ],
+  const { patientId } = useContext(UserContext);
+  const [items, setItems] = useState({});
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const fetchAppointments = async (date) => {
+    try {
+      const { data, error } = await supabase
+        .from('appointmentschedule')
+        .select('*')
+        .eq('patient_id', patientId)
+        .eq('date', date)
+        .order('time', { ascending: true }); // Sort appointments by time
+
+      if (error) {
+        console.error('Error fetching appointments', error);
+      } else {
+        // Organize fetched data by date
+        const updatedItems = { [date]: data };
+        setItems(updatedItems);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments', error);
+    }
   };
 
-  const selectedDate = new Date().toISOString().split('T')[0];
+  useEffect(() => {
+    fetchAppointments(selectedDate);
+    const updateAppointmentSubscription = supabase
+      .channel('update-appointment-chanel')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'appointmentschedule',
+      }, handleAppointment)
+      .subscribe();
+
+    // Unsubscribe from the channel when the component unmounts
+    return () => {
+      updateAppointmentSubscription.unsubscribe();
+    };
+  }, [patientId]);
+
+  useEffect(() => {
+    fetchAppointments(selectedDate);
+    const newAppointmentSubscription = supabase
+      .channel('new-appointment-chanel')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'appointmentschedule',
+      }, handleAppointment)
+      .subscribe();
+
+    // Unsubscribe from the channel when the component unmounts
+    return () => {
+      newAppointmentSubscription.unsubscribe();
+    };
+  }, [patientId]);
+  
+  useEffect(() => {
+    fetchAppointments(selectedDate);
+    const deleteAppointmentSubscription = supabase
+      .channel('delete-appointment-chanel')
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'appointmentschedule',
+      }, handleAppointment)
+      .subscribe();
+
+    // Unsubscribe from the channel when the component unmounts
+    return () => {
+      deleteAppointmentSubscription.unsubscribe();
+    };
+  }, [patientId]);
+
+  const handleAppointment = (payload) => {
+    clearDisplay();
+    fetchAppointments(selectedDate);
+  };
 
   const renderItem = (item) => {
     return (
       <TouchableOpacity style={styles.appointmentItem}>
         <Card>
-          <Card.Content>
-            <View>
-              <Text>{item.name}</Text>
-            </View>
-            <Text>Medical Professional ID: {item.medical_professional_id}</Text>
-            <Text>Time: {item.time}</Text>
-            <Text>Location: {item.location}</Text>
-            <Text>Purpose: {item.purpose}</Text>
+          <Card.Content style={styles.appointmentContent}>
+            <Text style={styles.appointmentName}>{item.name}</Text>
+            <Text style={styles.appointmentText}>medical Professional Id: {item.medicalProfessionalId}</Text>
+            <Text style={styles.appointmentText}>Time: {item.time}</Text>
+            <Text style={styles.appointmentText}>Location: {item.location}</Text>
+            <Text style={styles.appointmentText}>Purpose: {item.purpose}</Text>
           </Card.Content>
         </Card>
       </TouchableOpacity>
@@ -57,7 +107,7 @@ const ScheduleScreen = ({ navigation }) => {
   const renderEmptyDate = () => {
     return (
       <View style={styles.emptyDateContainer}>
-        <Text>No appointments available</Text>
+        <Text style={styles.emptyDateText}>No appointments for this date.</Text>
       </View>
     );
   };
@@ -65,7 +115,14 @@ const ScheduleScreen = ({ navigation }) => {
   const currentDate = new Date().toISOString().split('T')[0];
 
   const loadItems = (day) => {
-    // Handle day press
+    const selectedDay = day.dateString;
+    setSelectedDate(selectedDay);
+    clearDisplay();
+    fetchAppointments(selectedDay);
+  };
+
+  const clearDisplay = () => {
+    setItems({});
   };
 
   const handleAddAppointment = () => {
@@ -74,8 +131,8 @@ const ScheduleScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Agenda
-        items={{ [selectedDate]: items[selectedDate] || [] }}
+     <Agenda
+        items={items}
         renderItem={renderItem}
         renderEmptyDate={renderEmptyDate}
         current={currentDate}

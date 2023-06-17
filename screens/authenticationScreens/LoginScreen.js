@@ -1,68 +1,106 @@
 import React, { useState } from 'react';
-import {  Text, View, TextInput, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-import * as Google from 'expo-auth-session/providers/google';
+import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { styles } from '../../styles/authenticationStyles/LoginStyles'; 
+import { styles } from '../../styles/authenticationStyles/LoginStyles';
+import { supabase } from '../../lib/supabaseConfig';
+
 WebBrowser.maybeCompleteAuthSession();
 
-const LoginScreen = ({navigation,onLogin}) => {
+const LoginScreen = ({ navigation, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [token, setToken] = useState("");
-  const [userInfo, setUserInfo] = useState(null);
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: "163904592428-0igtsnrcnpvi87uh4mtvd2glmuh5hc0b.apps.googleusercontent.com",
-    androidClientId: "163904592428-5j8dt2hit34p59c45jd6knj3pj4ki35k.apps.googleusercontent.com",
-    iosClientId: "163904592428-o7s7f18khqbm22t6898gmt14thuvfsq1.apps.googleusercontent.com",
-  });
-  const handleLogin = () => {
-    // Perform login logic here
+
+  const handleLogin = async () => {
     // Check if email is in valid format
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(email)) {
       alert('Please enter a valid email address');
       return;
     }
-    // authentication
-    onLogin();
-  }
+
+    try {
+      // Fetch user data for the entered email
+      let { data: users, error } = await supabase
+        .from('users')
+        .select('email, password, user_role, user_id')
+        .eq('email', email)
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching user data:', error);
+        return;
+      }
+
+      if (users.length === 0) {
+        alert('Invalid email or password');
+        return;
+      }
+
+      const user = users[0];
+      const storedPassword = user.password;
+      const userRole = user.user_role;
+      const userId = user.user_id;
+
+      // Compare stored password with entered password
+      if (password !== storedPassword) {
+        alert('Invalid email or password');
+        return;
+      }
+
+      // Check if user role is "Admin"
+      if (userRole !== 'User') {
+        alert('Access restricted. Only Patients are allowed.');
+        return;
+      }
+
+      // Authentication successful
+      // Retrieve the user ID for further use
+      const patientID = await fetchPatientId(userId);
+      console.log(patientID);
+      console.log(userId);
+      onLogin(patientID, userId);
+    } catch (error) {
+      console.error('Error performing login:', error);
+    }
+  };
+
+  const fetchPatientId = async (userId) => {
+    try {
+      // Fetch user data for the entered email
+      let { data: patient, error } = await supabase
+        .from('patients')
+        .select('patient_id')
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching patient data:', error);
+        return null;
+      }
+
+      if (patient.length === 0) {
+        console.error('patient not found');
+        return null;
+      }
+      return patient[0].patient_id;
+    } catch (error) {
+      console.error('Error fetching patients ID:', error);
+      return null;
+    }
+  };
+
 
   const handleCreateAccount = () => {
     // Handle creating a new account here
-    navigation.navigate("Signup Screen");
-    
-  }
+    navigation.navigate('Signup Screen');
+  };
 
   const handleForgotPassword = () => {
     // Handle resetting the password here
-    navigation.navigate("Forgot Screen");
-  }
-
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await promptAsync();
-      const response = result.type === "success" ? result : null;
-      if (response) {
-        const token = response.authentication.accessToken;
-        const userResponse = await fetch(
-          "https://www.googleapis.com/userinfo/v2/me",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const userInfo = await userResponse.json();
-        setToken(token);
-        setUserInfo(userInfo);
-        console.log(response);
-        console.log(token);
-        console.log(userInfo);
-      }
-    } catch (error) {
-      // Add your own error handler here
-    }
+    navigation.navigate('Forgot Screen');
   };
-  
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>RoboMedic Solutions</Text>
@@ -88,15 +126,11 @@ const LoginScreen = ({navigation,onLogin}) => {
       <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
         <Text style={styles.loginText}>LOGIN</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.createBtn} onPress={handleCreateAccount}>
+        <Text style={styles.createText}>SIGN UP</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={handleForgotPassword}>
         <Text style={styles.forgot}>Forgot Password?</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={handleCreateAccount}>
-        <Text style={styles.signup}>Don't have an account? Sign up here</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleLogin} >
-        <AntDesign name="google" size={24} color="white" />
-        <Text style={styles.googleText}>Login with Google</Text>
       </TouchableOpacity>
     </View>
   );

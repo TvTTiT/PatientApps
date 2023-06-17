@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/authenticationStyles/SigupStyles';
-import { supabase } from '../../lib/supabaseConfig';
+import { supabase } from '../../supabase/supabaseConfig';
 import { UserContext } from '../../App';
 
 const SignupScreen = ({ navigation }) => {
@@ -26,37 +26,35 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
-  const handleNewUser = async () => {
-    try {
-      const { user, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('Error creating new user:', error);
-        alert('Error creating new user. Please try again.');
-      } else {
-        // User creation successful
-        setUserID(user.id);
-        // Additional logic or redirection can be performed here
-        alert('User created successfully!');
-      }
-    } catch (error) {
-      console.error('Error creating new user:', error);
-      alert('Error creating new user. Please try again.');
-    }
-  };
-
   const handlePassword = async () => {
     if (password !== confirmPassword) {
       alert('Passwords do not match');
     } else if (password === '' || confirmPassword === '') {
       alert('Passwords are empty');
     } else {
-      handleNewUser();
+      try {
+        const { error } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+        });
+
+        if (error) {
+          console.error('Error creating new user:', error);
+          alert('Error creating new user. Please try again.');
+          return;
+        }
+
+        // User signup successful
+        console.log('User signup successful');
+        alert('User signup successful. You can now log in.');
+
+        // Do any additional logic or navigate to the next screen
+      } catch (error) {
+        console.error('Error creating new user:', error);
+        alert('Error creating new user. Please try again.');
+      }
     }
-  };
+  };  
 
   const goBack = () => {
     navigation.goBack();

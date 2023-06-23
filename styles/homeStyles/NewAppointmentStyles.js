@@ -28,6 +28,7 @@ export const styles = StyleSheet.create({
     height: 50,
     color: 'black',
     paddingHorizontal: 20,
+    textAlign: 'center'
   },
   saveButton: {
     width: '80%',

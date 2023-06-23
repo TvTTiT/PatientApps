@@ -94,7 +94,7 @@ const ScheduleScreen = ({ navigation }) => {
         <Card>
           <Card.Content style={styles.appointmentContent}>
             <Text style={styles.appointmentName}>{item.name}</Text>
-            <Text style={styles.appointmentText}>medical Professional Id: {item.medicalProfessionalId}</Text>
+            <Text style={styles.appointmentText}>medical Professional Id: {item.medical_professional_id}</Text>
             <Text style={styles.appointmentText}>Time: {item.time}</Text>
             <Text style={styles.appointmentText}>Location: {item.location}</Text>
             <Text style={styles.appointmentText}>Purpose: {item.purpose}</Text>

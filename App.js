@@ -15,10 +15,12 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [patientId, setPatientId, ] = useState(0);
   const [userID, setUserID, ] = useState(0);
-  const handleLogin = (patientId,userId) => {
+  const [userPassword, setUserPassword, ] = useState('');
+  const handleLogin = (patientId,userId,password) => {
     setIsLoggedIn(true);
     setUserID(userId);
     setPatientId(patientId);
+    setUserPassword(password);
   };
 
   const handleLogout = () => {
@@ -26,6 +28,7 @@ export default function App() {
     setIsLoggedIn(false);
     setUserID(0);
     setPatientId(0);
+    setUserPassword('');
   };
 
   useEffect(() => {
@@ -39,6 +42,8 @@ export default function App() {
       setUserID,
       patientId, 
       setPatientId,
+      setUserPassword,
+      userPassword,
     }}
   >
       <NavigationContainer>

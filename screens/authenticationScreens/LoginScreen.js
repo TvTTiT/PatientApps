@@ -10,82 +10,60 @@ const LoginScreen = ({ navigation, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
-    // Check if email is in valid format
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(email)) {
-      alert('Please enter a valid email address');
-      return;
-    }
-
+  const fetchRole = async (id) => {
     try {
-      // Fetch user data for the entered email
-      let { data: users, error } = await supabase
-        .from('users')
-        .select('email, password, user_role, user_id')
-        .eq('email', email)
+      const {  data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('user_id',id)
         .limit(1);
 
       if (error) {
-        console.error('Error fetching user data:', error);
-        return;
+        console.log(error);
+        alert('An error occurred while fetching patient data. Please try again.');
+      return;
       }
 
-      if (users.length === 0) {
-        alert('Invalid email or password');
-        return;
+      if (data && data.length > 0) {
+        // login
+        onLogin(data[0].patient_id,id,password);
+      }else{
+        alert('Invalid account');
       }
-
-      const user = users[0];
-      const storedPassword = user.password;
-      const userRole = user.user_role;
-      const userId = user.user_id;
-
-      // Compare stored password with entered password
-      if (password !== storedPassword) {
-        alert('Invalid email or password');
-        return;
-      }
-
-      // Check if user role is "Admin"
-      if (userRole !== 'User') {
-        alert('Access restricted. Only Patients are allowed.');
-        return;
-      }
-
-      // Authentication successful
-      // Retrieve the user ID for further use
-      const patientID = await fetchPatientId(userId);
-      console.log(patientID);
-      console.log(userId);
-      onLogin(patientID, userId);
     } catch (error) {
-      console.error('Error performing login:', error);
+      alert('Invalid account');
+      console.error(error);
     }
   };
 
-  const fetchPatientId = async (userId) => {
+  const handleLogin = async () => {
     try {
-      // Fetch user data for the entered email
-      let { data: patient, error } = await supabase
-        .from('patients')
-        .select('patient_id')
-        .eq('user_id', userId)
-        .limit(1);
-
+      const response = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+  
+      const { user, error } = response.data;
+  
       if (error) {
-        console.error('Error fetching patient data:', error);
-        return null;
+        console.log(error);
+        if (error.message === 'Invalid login credentials') {
+          alert('Invalid email or password. Please try again.');
+        } else {
+          alert('An error occurred during login. Please try again.');
+        }
+        return;
       }
-
-      if (patient.length === 0) {
-        console.error('patient not found');
-        return null;
+  
+      if (user) {
+        // User logged in successfully
+        fetchRole(user.id);
+      }else{
+        alert('Invalid email or password. Please try again.');
       }
-      return patient[0].patient_id;
     } catch (error) {
-      console.error('Error fetching patients ID:', error);
-      return null;
+      alert('An error occurred during login. Please try again.');
+      console.error(error);
     }
   };
 

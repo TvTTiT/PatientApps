@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const bloodPressureStyles = StyleSheet.create({
+export const SensorDataStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -14,7 +14,8 @@ export const bloodPressureStyles = StyleSheet.create({
     zIndex: 1,
   },
   titleContainer: {
-    marginBottom: 16,
+    marginBottom: 24,
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -22,31 +23,31 @@ export const bloodPressureStyles = StyleSheet.create({
     color: '#333333',
     textAlign: 'center',
   },
-  yearSelectorContainer: {
+  timeSelectorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 16,
   },
-  yearSelector: {
+  timeSelector: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginHorizontal: 8,
     backgroundColor: '#EEEEEE',
   },
-  yearText: {
+  timeText: {
     fontSize: 16,
     color: '#333333',
   },
-  selectedYear: {
+  selectedTime: {
     backgroundColor: '#FF6262',
   },
-  selectedYearText: {
+  selectedTimeText: {
     color: '#FFFFFF',
   },
   chartContainer: {
-    alignItems: 'flex-start',  // Align the chart to the left
-    marginRight: 40,  // Move the chart to the left by 3 pixels
+    alignItems: 'flex-start',
+    marginLeft: -20,
   },
   chart: {
     marginTop: 16,

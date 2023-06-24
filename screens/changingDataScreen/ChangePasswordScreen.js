@@ -2,13 +2,40 @@ import React, { useState } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/changingDataStyles/ChangePasswordStyles';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../../supabase/supabaseConfig';
+
 const ChangePasswordScreen = ({navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const confirm = () => {
-    // Perform sign-up logic here
-  }
+  const updatePassword = async () => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: password });
+  
+      if (error) {
+        throw error;
+      }
+  
+      alert('Password updated successfully');
+      // Add any additional logic or navigation here
+      changeMind();
+    } catch (error) {
+      if (error.message.includes('Password should be at least 6 characters')) {
+        alert('Password should be at least 6 characters');
+      } else {
+        alert('An error occurred while updating the password. Please try again.');
+      }
+    }
+  };
+  
+
+  const handleUpdatePassword = () => {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+    } else {
+      updatePassword();
+    }
+  };
 
   const changeMind = () => {
     navigation.navigate('PersonalDetails');
@@ -42,7 +69,7 @@ const ChangePasswordScreen = ({navigation }) => {
           onChangeText={(text) => setConfirmPassword(text)}
         />
       </View>
-      <TouchableOpacity style={styles.signupBtn} onPress={confirm}>
+      <TouchableOpacity style={styles.signupBtn} onPress={handleUpdatePassword}>
         <Text style={styles.signupText}>Comfirm</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={changeMind}>

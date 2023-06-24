@@ -1,16 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/changingDataStyles/ChangeAddressStyles'; 
 import { Ionicons } from '@expo/vector-icons';
+import {supabase} from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
 
 const ChangeAddressScreen = ({navigation }) => {
   const [address, setAddress] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { userID,userPassword } = useContext(UserContext);
 
   const confirm = () => {
-    // Perform sign-up logic here
+    if(confirmPassword !== userPassword){
+      alert("Incorrect Password");
+    }else{
+      updateAddress();
+    }
   }
 
+  
+  const updateAddress = async () =>{
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .update({ 
+          address: address
+        })
+        .eq('user_id', userID);
+  
+      if (error) {
+        console.error('Error updating Address:', error);
+        return;
+      }
+      alert('Address updated successfully');
+      setAddress('');
+      setConfirmPassword('');
+      navigation.navigate('Address');
+    } catch (error) {
+      console.error('Error updating Address:', error);
+    }
+    }
   const changeMind = () => {
     navigation.navigate('Address');
   }

@@ -1,13 +1,59 @@
-import React, { useState } from 'react';
+import React,  { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../../styles/patientStyles/AddressStyles';
+import { UserContext } from '../../App';
+import {supabase} from '../../supabase/supabaseConfig';
 
 const AddressScreen = ({ navigation }) => {
-  const [address, setAddress] = useState('Van Galenstraat 20, 7511 JL Enschede');
+  const [address, setAddress] = useState('');
+  const { userID } = useContext(UserContext);
+
+  useEffect(() => {
+    fetchData();
+    const updateAddressSubscription = supabase
+      .channel('update-address-chanel')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'patients',
+      }, handleNewAddress)
+      .subscribe();
+
+    // Unsubscribe from the channel when the component unmounts
+    return () => {
+      updateAddressSubscription.unsubscribe();
+    };
+  }, [userID]);
+
+  useEffect(() => {
+    fetchData();
+  }, [userID]);
+
+  const fetchData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('address')
+        .eq('user_id', userID)
+        .limit(1);
+      if (error) {
+        console.error('Error fetching patient data', error);
+      } 
+      if (data.length > 0) {
+        setAddress(data[0].address);
+      }  
+    } catch (error) {
+      console.error('Error fetching patient data', error);
+    }
+  }
   
+  const handleNewAddress = () => {
+    setAddress('');
+    fetchData();
+  };
+
   const handleChangeAddress = () => {
-    console.log('Change address button pressed');
     navigation.navigate('Change Address')
   };
   

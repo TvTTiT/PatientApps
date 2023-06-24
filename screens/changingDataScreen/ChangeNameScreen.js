@@ -1,15 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../../styles/changingDataStyles/ChangeNameStyles'; 
+import {supabase} from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
 
 const ChangeNameScreen = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { userID,userPassword } = useContext(UserContext);
 
   const confirm = () => {
-    // Perform sign-up logic here
+    if(confirmPassword !== userPassword){
+      alert("Incorrect Password");
+    }else{
+      updateName();
+    }
+  }
+
+  const updateName = async () =>{
+  try {
+    const { data, error } = await supabase
+      .from('patients')
+      .update({ 
+        first_name: firstName,
+        last_name: lastName
+      })
+      .eq('user_id', userID);
+
+    if (error) {
+      console.error('Error updating name:', error);
+      return;
+    }
+    alert('Name updated successfully');
+    setFirstName('');
+    setLastName('');
+    setConfirmPassword('');
+    navigation.navigate('UserName');
+  } catch (error) {
+    console.error('Error updating name:', error);
+  }
   }
 
   const changeMind = () => {
@@ -23,7 +54,7 @@ const ChangeNameScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color="#000" style={styles.goBackIcon} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.title}>Changing user name</Text>
+      <Text style={styles.title}>Changing name</Text>
       <View style={styles.inputView}>
         <TextInput
           style={styles.inputText}

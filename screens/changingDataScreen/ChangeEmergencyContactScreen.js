@@ -1,17 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/changingDataStyles/ChangeEmergencyContactStyles'; 
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
 
-const ChangeEmergencyContactScreen = ({navigation }) => {
+const ChangeEmergencyContactScreen = ({ navigation, route }) => {
+  const contactID = route.params?.contactID;
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const {userPassword } = useContext(UserContext);
 
   const confirm = () => {
-    // Perform sign-up logic here
+    if (confirmPassword !== userPassword) {
+      alert('Incorrect Password');
+    } else {
+      updateContact();
+    }
+  };
+  
+  const updateContact = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('emergencycontacts')
+        .update({ 
+          first_name: firstName,
+          last_name: lastName,
+          relationship: relationship,
+          contact_number: contactNumber,
+        })
+        .eq('emergency_contact_id', contactID);
+  
+      if (error) {
+        console.error('Error updating Contact:', error);
+        return;
+      }
+      alert('Contact updated successfully');
+      setFirstName('');
+      setLastName('');
+      setRelationship('');
+      setContactNumber('');
+      setConfirmPassword('');
+      navigation.navigate('Emergency Contact');
+    } catch (error) {
+      console.error('Error updating Contact:', error);
+    }
   }
 
   const changeMind = () => {
@@ -56,8 +92,9 @@ const ChangeEmergencyContactScreen = ({navigation }) => {
       <View style={styles.inputView}>
         <TextInput
           style={styles.inputText}
-          placeholder="Contact Number..."
+          placeholder="Contact..."
           placeholderTextColor="#003f5c"
+          keyboardType="numeric"
           value={contactNumber}
           onChangeText={(text) => setContactNumber(text)}
         />

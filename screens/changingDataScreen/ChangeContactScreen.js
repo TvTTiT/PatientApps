@@ -1,14 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/changingDataStyles/ChangeContactStyles'; 
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
 
-const ChangeContactScreen = ({navigation }) => {
+const ChangeContactScreen = ({ navigation }) => {
   const [contact, setContact] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
+  const { userID, userPassword } = useContext(UserContext);
+  
   const confirm = () => {
-    // Perform sign-up logic here
+    if (confirmPassword !== userPassword) {
+      alert('Incorrect Password');
+    } else {
+      updateContact();
+    }
+  };
+
+  const updateContact = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .update({ 
+          contact_number: contact
+        })
+        .eq('user_id', userID);
+  
+      if (error) {
+        console.error('Error updating Contact:', error);
+        return;
+      }
+      alert('Contact updated successfully');
+      setContact('');
+      setConfirmPassword('');
+      navigation.navigate('Contact');
+    } catch (error) {
+      console.error('Error updating Contact:', error);
+    }
   }
 
   const changeMind = () => {
@@ -28,6 +57,7 @@ const ChangeContactScreen = ({navigation }) => {
           style={styles.inputText}
           placeholder="Contact..."
           placeholderTextColor="#003f5c"
+          keyboardType="numeric"
           value={contact}
           onChangeText={(text) => setContact(text)}
         />
@@ -51,7 +81,5 @@ const ChangeContactScreen = ({navigation }) => {
     </View>
   );
 };
-
-
 
 export default ChangeContactScreen;

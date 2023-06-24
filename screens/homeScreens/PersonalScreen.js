@@ -5,45 +5,30 @@ import { styles } from '../../styles/homeStyles/PersonalStyles';
 
 const PersonalScreen = ({ navigation }) => {
   const handleName = () => {
-    console.log(' Name button pressed');
-    // Logic for editing the name
     navigation.navigate('UserName');
   };
 
   const handleEmail = () => {
-    console.log(' Email button pressed');
-    // Logic for editing the email
     navigation.navigate('Email');
   };
 
   const handleDateOfBirth = () => {
-    console.log(' Date of Birth button pressed');
-    // Logic for editing the date of birth
     navigation.navigate('DOB');
   };
 
   const handleGender = () => {
-    console.log(' Gender button pressed');
-    // Logic for editing the gender
     navigation.navigate('Gender');
   };
 
   const handleContactNumber = () => {
-    console.log(' Contact Number button pressed');
-    // Logic for editing the contact number
     navigation.navigate('Contact');
   };
 
   const handleAddress = () => {
-    console.log(' Address button pressed');
-    // Logic for editing the address
     navigation.navigate('Address');
   };
 
   const handleEmergencyContacts = () => {
-    console.log('Emergency Contacts button pressed');
-    // Logic for handling emergency contacts
-    // You can navigate to the Emergency Contacts screen here
     navigation.navigate('Emergency Contact');
   };
 

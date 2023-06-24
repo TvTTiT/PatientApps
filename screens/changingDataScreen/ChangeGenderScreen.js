@@ -1,15 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/changingDataStyles/ChangingGenderStyles'; 
 import { Ionicons } from '@expo/vector-icons';
-
+import {supabase} from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
 const ChangeGenderScreen = ({navigation }) => {
   const [gender, setGender] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { userID,userPassword } = useContext(UserContext);
 
   const confirm = () => {
-    // Perform sign-up logic here
+    if(confirmPassword !== userPassword){
+      alert("Incorrect Password");
+    }else{
+      updateGender();
+    }
   }
+
+  
+  const updateGender = async () =>{
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .update({ 
+          gender: gender
+        })
+        .eq('user_id', userID);
+  
+      if (error) {
+        console.error('Error updating Gender:', error);
+        return;
+      }
+      alert('Gender updated successfully');
+      setGender('');
+      setConfirmPassword('');
+      navigation.navigate('Gender');
+    } catch (error) {
+      console.error('Error updating Gender:', error);
+    }
+    }
+  
 
   const changeMind = () => {
     navigation.navigate('Gender');

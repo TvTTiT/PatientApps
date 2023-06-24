@@ -1,13 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../../styles/patientStyles/DateStyles';
-
+import { UserContext } from '../../App';
+import {supabase} from '../../supabase/supabaseConfig';
 const DateScreen = ({ navigation }) => {
-  const [date, setDate] = useState('01/01/1990');
+  const [date, setDate] = useState('');
+  const { userID } = useContext(UserContext);
+    
+  useEffect(() => {
+    fetchData();
+    const updateDOBSubscription = supabase
+      .channel('update-dob-chanel')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'patients',
+      }, handleNewDOB)
+      .subscribe();
+
+    // Unsubscribe from the channel when the component unmounts
+    return () => {
+      updateDOBSubscription.unsubscribe();
+    };
+  }, [userID]);
+
+  useEffect(() => {
+    fetchData();
+  }, [userID]);
+
+  const fetchData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('date_of_birth')
+        .eq('user_id', userID)
+        .limit(1);
+      if (error) {
+        console.error('Error fetching patient data', error);
+      } 
+      if (data.length > 0) {
+        setDate(data[0].date_of_birth);
+      }  
+    } catch (error) {
+      console.error('Error fetching patient data', error);
+    }
+  }
   
+  const handleNewDOB = () => {
+    setDate('');
+    fetchData();
+  };
+
+
   const handleChangeDate = () => {
-    console.log('Change date of birth button pressed');
     navigation.navigate('Change DOB')
   };
   

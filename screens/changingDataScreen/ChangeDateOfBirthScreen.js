@@ -1,17 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState,useContext } from 'react';
 import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { styles } from '../../styles/changingDataStyles/ChangeDateOfBirthStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
+import {supabase} from '../../supabase/supabaseConfig';
+import { UserContext } from '../../App';
 
 const ChangeDateOfBirthScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const { userID,userPassword } = useContext(UserContext);
 
   const confirm = () => {
-    // Perform sign-up logic here
+    if(confirmPassword !== userPassword){
+      alert("Incorrect Password");
+    }else{
+      updateDOB();
+    }
   };
+
+  const updateDOB = async () =>{
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .update({ 
+          date_of_birth: selectedDate
+        })
+        .eq('user_id', userID);
+  
+      if (error) {
+        console.error('Error updating DOB:', error);
+        return;
+      }
+      alert('DOB updated successfully');
+      setSelectedDate('');
+      setConfirmPassword('');
+      navigation.navigate('DOB');
+    } catch (error) {
+      console.error('Error updating DOB:', error);
+    }
+    }
 
   const changeMind = () => {
     navigation.navigate('DOB');

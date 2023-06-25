@@ -46,8 +46,9 @@ export const SensorDataStyles = StyleSheet.create({
     color: '#FFFFFF',
   },
   chartContainer: {
-    alignItems: 'flex-start',
-    marginLeft: -20,
+    alignItems: 'center',
+    marginBottom: 16,
+    marginLeft: -30, 
   },
   chart: {
     marginTop: 16,
@@ -62,5 +63,24 @@ export const SensorDataStyles = StyleSheet.create({
   goBackIcon: {
     marginBottom: 16,
     marginLeft: 10,
+  },
+  analysisContainer: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F2',
+    alignItems: 'center',
+  },
+  analysisTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  analysisText: {
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 4,
   },
 });

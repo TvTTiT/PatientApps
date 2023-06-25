@@ -2,23 +2,26 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
-import {SensorDataStyles} from '../../styles/healthStyles/SensorDataStyles';
+import { SensorDataStyles } from '../../styles/healthStyles/SensorDataStyles';
 import { supabase } from '../../supabase/supabaseConfig';
 import { UserContext } from '../../App';
 
-const BloodPressureScreen = ({navigation}) => {
+const HeartRateScreen = ({ navigation }) => {
   const [selectedTime, setSelectedTime] = useState('ALL DATA');
-  const [hearRateData, setHeartRateData] = useState([]);
+  const [heartRateData, setHeartRateData] = useState([]);
+  const [originalHeartRateData, setOriginalHeartRateData] = useState([]); 
   const [labels, setLabels] = useState([]);
-
+  const [analysisResult, setAnalysisResult] = useState('');
   const { patientId } = useContext(UserContext);
 
   const handleTimeChange = (time) => {
     setSelectedTime(time);
-    if (time === '24H') {
-      fetchLast24HoursData();
+    if (time === 'ANALYSIS') {
+      Analysis();
     } else if (time === 'ALL DATA') {
       fetchAllData();
+    } else if (time === 'COUNT') {
+      Count();
     }
   };
 
@@ -42,40 +45,40 @@ const BloodPressureScreen = ({navigation}) => {
     };
   }, [patientId]);
 
-  const fetchLast24HoursData = async () => {
-    try {
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setDate(twentyFourHoursAgo.getDate() - 1);
-      const fromDate = twentyFourHoursAgo.toISOString();
+  const Analysis = () => {
+    if (originalHeartRateData.length > 0) { // Use originalHeartRateData for analysis
+      const averageHeartRate = calculateAverageHeartRate(originalHeartRateData);
+      const maxHeartRate = Math.max(...originalHeartRateData);
+      const minHeartRate = Math.min(...originalHeartRateData);
 
-      const { data, error } = await supabase
-        .from('sensordata')
-        .select('heart_rate , timestamp')
-        .eq('patient_id', patientId)
-        .gte('timestamp', fromDate)
-        .order('timestamp', { ascending: true });
+      // Update the chart data to show analysis results
+      const analysisData = [averageHeartRate, maxHeartRate, minHeartRate];
+      const analysisLabels = ['Average', 'Max', 'Min'];
+      setHeartRateData(analysisData);
+      setLabels(analysisLabels);
+    } else {
+      // If no heart rate data available, clear the chart
+      setHeartRateData([]);
+      setLabels([]);
+    }
+  };
 
-      if (error) {
-        console.error('Error fetching sensor data', error);
-      } else {
-        if (data.length > 0) {
-          const sensorData = data.map((item) => item.heart_rate );
-          setHeartRateData(sensorData);
+  const calculateAverageHeartRate = (data) => { // Accept heart rate data as an argument
+    const sum = data.reduce((acc, value) => acc + value, 0);
+    return sum / data.length;
+  };
 
-          const sensorLabels = data
-            .filter((_, index) => index % 6 === 0) // Display timestamps at regular intervals (every 6th timestamp)
-            .map((item) => {
-              const timestamp = formatTimestamp(item.timestamp);
-              return timestamp;
-            });
-          setLabels(sensorLabels);
-        } else {
-          setHeartRateData([]);
-          setLabels([]);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching sensor data', error);
+  const Count = () => {
+    if (originalHeartRateData.length > 0) { // Use originalHeartRateData for count
+      const highestData = Math.max(...originalHeartRateData);
+      const lowestData = Math.min(...originalHeartRateData);
+      const aboveNormalCount = originalHeartRateData.filter((data) => data > 95).length;
+      const belowNormalCount = originalHeartRateData.filter((data) => data < 90).length;
+
+      const analysisText = `Highest Data: ${highestData}\nLowest Data: ${lowestData}\nAbove Normal Count: ${aboveNormalCount}\nBelow Normal Count: ${belowNormalCount}`;
+      setAnalysisResult(analysisText);
+    } else {
+      setAnalysisResult('');
     }
   };
 
@@ -83,7 +86,7 @@ const BloodPressureScreen = ({navigation}) => {
     try {
       const { data, error } = await supabase
         .from('sensordata')
-        .select('heart_rate , timestamp')
+        .select('heart_rate, timestamp')
         .eq('patient_id', patientId)
         .order('timestamp', { ascending: true });
 
@@ -91,8 +94,9 @@ const BloodPressureScreen = ({navigation}) => {
         console.error('Error fetching sensor data', error);
       } else {
         if (data.length > 0) {
-          const sensorData = data.map((item) => item.heart_rate );
+          const sensorData = data.map((item) => item.heart_rate);
           setHeartRateData(sensorData);
+          setOriginalHeartRateData(sensorData); // Update originalHeartRateData with all data
 
           const sensorLabels = data
             .filter((_, index) => index % 6 === 0) // Display timestamps at regular intervals (every 6th timestamp)
@@ -103,6 +107,7 @@ const BloodPressureScreen = ({navigation}) => {
           setLabels(sensorLabels);
         } else {
           setHeartRateData([]);
+          setOriginalHeartRateData([]); // Clear originalHeartRateData
           setLabels([]);
         }
       }
@@ -112,10 +117,12 @@ const BloodPressureScreen = ({navigation}) => {
   };
 
   const handleNewData = (payload) => {
-    if (selectedTime === '24H') {
-      fetchLast24HoursData();
+    if (selectedTime === 'ANALYSIS') {
+      Analysis();
     } else if (selectedTime === 'ALL DATA') {
       fetchAllData();
+    } else if (selectedTime === 'COUNT') {
+      Count();
     }
   };
 
@@ -133,54 +140,74 @@ const BloodPressureScreen = ({navigation}) => {
         </TouchableOpacity>
       </View>
       <View style={SensorDataStyles.titleContainer}>
-        <Text style={SensorDataStyles.title}>Blood Oxygen History</Text>
+        <Text style={SensorDataStyles.title}>Heart Rate History</Text>
       </View>
       <View style={SensorDataStyles.timeSelectorContainer}>
-        <TouchableOpacity
-          style={[SensorDataStyles.timeSelector, selectedTime === '24H' && SensorDataStyles.selectedTime]}
-          onPress={() => handleTimeChange('24H')}
+      <TouchableOpacity
+          style={[SensorDataStyles.timeSelector, selectedTime === 'COUNT' && SensorDataStyles.selectedTime]}
+          onPress={() => handleTimeChange('COUNT')}
         >
-          <Text style={[SensorDataStyles.timeText, selectedTime === '24H' && SensorDataStyles.selectedTimeText]}>Newest Data</Text>
+          <Text style={[SensorDataStyles.timeText, selectedTime === 'COUNT' && SensorDataStyles.selectedTimeText]}>COUNT</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[SensorDataStyles.timeSelector, selectedTime === 'ANALYSIS' && SensorDataStyles.selectedTime]}
+          onPress={() => handleTimeChange('ANALYSIS')}
+        >
+          <Text style={[SensorDataStyles.timeText, selectedTime === 'ANALYSIS' && SensorDataStyles.selectedTimeText]}>
+            ANALYSIS
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[SensorDataStyles.timeSelector, selectedTime === 'ALL DATA' && SensorDataStyles.selectedTime]}
           onPress={() => handleTimeChange('ALL DATA')}
         >
-          <Text style={[SensorDataStyles.timeText, selectedTime === 'ALL DATA' && SensorDataStyles.selectedTimeText]}>ALL DATA</Text>
+          <Text style={[SensorDataStyles.timeText, selectedTime === 'ALL DATA' && SensorDataStyles.selectedTimeText]}>
+            ALL DATA
+          </Text>
         </TouchableOpacity>
       </View>
-      <View style={SensorDataStyles.chartContainer}>
-        {hearRateData.length > 0 ? (
-          <LineChart
-            data={{
-              labels: labels,
-              datasets: [
-                {
-                  data: hearRateData,
-                  strokeWidth: 2,
-                },
-              ],
-            }}
-            width={350}
-            height={250}
-            chartConfig={{
-              backgroundGradientFrom: '#FFFFFF',
-              backgroundGradientTo: '#FFFFFF',
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255, 99, 71, ${opacity})`,
-            }}
-            bezier
-            style={SensorDataStyles.chart}
-            fromZero
-            yAxisLabel=""
-            xLabelsOffset={-10} // Offset to align x labels properly
-          />
-        ) : (
-          <Text>No data available</Text>
-        )}
-      </View>
+      {selectedTime === 'COUNT' ? (
+        <View style={SensorDataStyles.analysisContainer}>
+          {analysisResult ? (
+            <Text style={SensorDataStyles.analysisResult}>{analysisResult}</Text>
+          ) : (
+            <Text>No data available for analysis</Text>
+          )}
+        </View>
+      ) : (
+        <View style={SensorDataStyles.chartContainer}>
+          {heartRateData.length > 0 ? (
+            <LineChart
+              data={{
+                labels: labels,
+                datasets: [
+                  {
+                    data: heartRateData,
+                    strokeWidth: 2,
+                  },
+                ],
+              }}
+              width={350}
+              height={250}
+              chartConfig={{
+                backgroundGradientFrom: '#FFFFFF',
+                backgroundGradientTo: '#FFFFFF',
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(255, 99, 71, ${opacity})`,
+              }}
+              bezier
+              style={[SensorDataStyles.chart, selectedTime === 'ANALYSIS' && SensorDataStyles.hiddenChart]}
+              fromZero
+              yAxisLabel=""
+              xLabelsOffset={-10} // Offset to align x labels properly
+            />
+          ) : (
+            <Text>No data available</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 };
 
-export default BloodPressureScreen;
+export default HeartRateScreen;

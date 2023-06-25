@@ -44,4 +44,21 @@ export const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
   },
+  buttonContainer: {
+    backgroundColor: '#4EC5F1',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

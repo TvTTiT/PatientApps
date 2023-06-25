@@ -11,12 +11,36 @@ const InformationFormScreen = ({ navigation, onLogin }) => {
   const [contactNumber, setContactNumber] = useState('');
   const [hospitalOrClinic, setHospitalOrClinic] = useState('');
   const [specialization, setSpecialization] = useState('');
-  const { userID, setMedicalProfessionalId,medicalProfessionalId, userEmail } = useContext(UserContext);
+  const { setUserID,userID, setMedicalProfessionalId,medicalProfessionalId, userEmail } = useContext(UserContext);
 
   useEffect(() => {
+    handleConfirmationEmail();
     console.log(userID);
     console.log(medicalProfessionalId);
   }, [userID, medicalProfessionalId, userEmail]);
+
+  
+  const handleConfirmationEmail = async () => {
+    const response = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    const { user, error } = response.data;
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    if (user) {
+      console.log(user);
+      setUserID(user.id);
+      console.log(userID);
+    } else {
+      alert('Please confirm your email. Please try again.');
+    }
+  };
 
   const handleSubmit = async () => {
     try {

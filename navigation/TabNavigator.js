@@ -10,6 +10,7 @@ import ScheduleScreen from '../screens/homeScreens/ScheduleScreen';
 import NotificationsScreen from '../screens/homeScreens/Notifications';
 import NewAppointmentScreen from '../screens/homeScreens/NewAppointmentScreen';
 import MessagesScreen from '../screens/homeScreens/MessagesScreen';
+import MedicationScreen from '../screens/homeScreens/MedicationScreen';
 //patient screens
 import NameScreen from '../screens/patientScreens/NameScreen';
 import EmailScreen from '../screens/patientScreens/EmailScreen';
@@ -243,6 +244,14 @@ const TabNavigator = ({ onLogout }) => {
        <Tab.Screen
         name="Body Temperature"
         component={BodyTemperatureScreen}
+        options={{
+          tabBarButton: () => null,
+          headerShown: false,
+        }}
+      />
+       <Tab.Screen
+        name="Medications"
+        component={MedicationScreen}
         options={{
           tabBarButton: () => null,
           headerShown: false,

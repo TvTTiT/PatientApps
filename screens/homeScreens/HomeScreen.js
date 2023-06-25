@@ -65,7 +65,6 @@ const HomeScreen = ({ navigation }) => {
     setHeartRate(payload.heart_rate);
   };
   
-
   const handleHeartRate = () => {
     navigation.navigate('Heart Rate');
   };
@@ -81,6 +80,10 @@ const HomeScreen = ({ navigation }) => {
   const handleBodyTemperature = () => {
     navigation.navigate('Body Temperature');
   };
+
+  const handleMedicines = () => {
+    navigation.navigate('Medications');
+  }
 
   return (
     <View style={styles.container}>
@@ -134,6 +137,9 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.dataUnit}>°C</Text>
             </View>
             <Text style={styles.dataTitle}>Body Temperature</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonContainer} onPress={handleMedicines}>
+            <Text style={styles.buttonText}>Medicines List</Text>
           </TouchableOpacity>
         </View>
       </View>

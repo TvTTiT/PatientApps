@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity,Alert } from 'react-native';
 import { styles } from '../../styles/authenticationStyles/SigupStyles';
 import { supabase } from '../../supabase/supabaseConfig';
 import { UserContext } from '../../App';
 
 const SignupScreen = ({ navigation }) => {
-  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { setUserID, userID, setUserEmail, userEmail } = useContext(UserContext);
 
   useEffect(() => {
@@ -21,40 +21,43 @@ const SignupScreen = ({ navigation }) => {
       alert('Please enter a valid email address');
       return;
     } else {
-      setUserEmail(email);
-      handlePassword();
+      handleNewUser();
     }
   };
 
-  const handlePassword = async () => {
+  const handleNewUser = async () => {
     if (password !== confirmPassword) {
       alert('Passwords do not match');
     } else if (password === '' || confirmPassword === '') {
       alert('Passwords are empty');
+    } else if (password.length < 6) {
+      alert('Password should be at least 6 characters');
     } else {
+      setIsLoading(true);
       try {
-        const { error } = await supabase.auth.signUp({
+        const response = await supabase.auth.signUp({
           email: email,
-          password: password,
+          password: password
         });
-
+        const { user, error } = response.data;
         if (error) {
-          console.error('Error creating new user:', error);
-          alert('Error creating new user. Please try again.');
+          setIsLoading(false);
+          alert('An error occurred during signup. Please try again.');
           return;
         }
-
-        // User signup successful
-        console.log('User signup successful');
-        alert('User signup successful. You can now log in.');
-
-        // Do any additional logic or navigate to the next screen
+        if (user) {
+          setUserEmail(email);
+          console.log(user);
+          setIsLoading(false);
+          navigation.navigate('Information Form');
+          return;
+        }
       } catch (error) {
-        console.error('Error creating new user:', error);
-        alert('Error creating new user. Please try again.');
+        alert('An error occurred during signup. Please try again.');
+        setIsLoading(false);
       }
     }
-  };  
+  };
 
   const goBack = () => {
     navigation.goBack();
@@ -63,15 +66,6 @@ const SignupScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>Sign Up</Text>
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.inputText}
-          placeholder="User Name..."
-          placeholderTextColor="#003f5c"
-          value={userName}
-          onChangeText={(text) => setUserName(text)}
-        />
-      </View>
       <View style={styles.inputView}>
         <TextInput
           style={styles.inputText}
@@ -101,8 +95,16 @@ const SignupScreen = ({ navigation }) => {
           onChangeText={(text) => setConfirmPassword(text)}
         />
       </View>
-      <TouchableOpacity style={styles.signupBtn} onPress={checkEmail}>
-        <Text style={styles.signupText}>SIGN UP</Text>
+      <TouchableOpacity
+        style={styles.signupBtn}
+        onPress={checkEmail}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Text style={styles.signupText}>Signing Up...</Text>
+        ) : (
+          <Text style={styles.signupText}>SIGN UP</Text>
+        )}
       </TouchableOpacity>
       <TouchableOpacity onPress={goBack}>
         <Text style={styles.login}>Already have an account? Log in here</Text>

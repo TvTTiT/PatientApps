@@ -3,51 +3,44 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
     marginBottom: 20,
   },
-  searchContainer: {
+  inputView: {
     width: '80%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 25,
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 15,
+    minHeight: 20, // Updated style
+    marginBottom: 10,
+    justifyContent: 'center',
+    padding: 10,
   },
-  searchInput: {
+  inputText: {
     height: 50,
     color: 'black',
   },
-  patientItem: {
-    marginBottom: 10,
-    alignItems: 'center',
+  placeholderText: {
+    color: '#aaa',
   },
-  patientShape: {
-    flexDirection: 'row',
+  saveButton: {
+    width: '80%',
     backgroundColor: '#fb5b5a',
     borderRadius: 25,
     height: 50,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    width: '80%',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 10,
   },
-  patientName: {
+  saveButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
-  list: {
-    width: '100%',
-  },
 });
-

@@ -5,8 +5,8 @@ import { styles } from '../../styles/homeStyles/PatientMedicalProfessionalStyles
 import { supabase } from '../../supabase/supabaseConfig';
 import { UserContext } from '../../App';
 
-const PatientMedicalProfessionalScreen = ({ navigation,onLogin,route }) => {
-     const { userID,patientId,password } = useContext(UserContext);
+const PatientMedicalProfessionalScreen = ({ onLogin }) => {
+  const { userID,patientId,password } = useContext(UserContext);
   const [searchText, setSearchText] = useState('');
   const [medicalProfessional, setMedicalProfessional] = useState([]);
 

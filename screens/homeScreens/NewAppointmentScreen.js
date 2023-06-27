@@ -67,6 +67,17 @@ const NewAppointmentScreen = ({ navigation }) => {
 
   const saveAppointment = async () => {
     try {
+
+      const { data: patient_medical_professional, error : Error} = await supabase
+      .from('patient_medical_professional')
+      .select('medical_professional_id')
+      .eq('patient_id',patientId)
+
+    if (Error) {
+      console.error('Error fetching patient_medical_professional_id:', error);
+      return;
+    }
+    setMedicalProfessionalId(patient_medical_professional[0].medical_professional_id);
       const { data, error } = await supabase
       .from('appointmentschedule')
       .insert([
@@ -124,15 +135,6 @@ const NewAppointmentScreen = ({ navigation }) => {
           placeholderTextColor="#003f5c"
           value={time}
           onChangeText={(text) => setTime(text)}
-        />
-      </View>
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.inputText}
-          placeholder="Medical Professional ID..."
-          placeholderTextColor="#003f5c"
-          value={medicalProfessionalId}
-          onChangeText={(text) => setMedicalProfessionalId(text)}
         />
       </View>
       <View style={styles.inputView}>

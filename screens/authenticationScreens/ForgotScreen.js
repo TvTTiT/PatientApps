@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, Alert } from 'react-native';
 import { styles } from '../../styles/authenticationStyles/ForgotStyles';
 import { supabase } from '../../supabase/supabaseConfig';
 
@@ -8,26 +8,14 @@ const ForgotScreen = () => {
 
   const handleForgotPassword = async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', email)
-        .single();
-
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) {
-        console.error('Error selecting user:', error);
-        alert('Error selecting user');
-        return;
+        throw new Error(error.message);
       }
-
-      if (!data) {
-        console.error('User not found');
-        alert('User not found');
-        return;
-      }
-      alert('Reset password email sent successfully');
+      Alert.alert('Password Reset', 'Reset password link sent to your email!');
     } catch (error) {
-      alert('Invalid email address');
+      console.log('Error sending password reset email:', error.message);
+      Alert.alert('Error', 'Failed to send reset password link. Please try again.');
     }
   };
 

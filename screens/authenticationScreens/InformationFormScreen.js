@@ -4,7 +4,6 @@ import { styles } from '../../styles/authenticationStyles/InformationFormStyles'
 import { supabase } from '../../supabase/supabaseConfig';
 import { UserContext } from '../../App';
 import { Calendar } from 'react-native-calendars';
-import { Ionicons } from '@expo/vector-icons';
 
 const InformationFormScreen = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
@@ -156,6 +155,16 @@ const InformationFormScreen = ({ navigation }) => {
           onChangeText={(text) => setAddress(text)}
         />
       </View>
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholderTextColor="#003f5c"
+          placeholder="Contact Number"
+          keyboardType="phone-pad"
+          value={contactNumber}
+          onChangeText={(text) => setContactNumber(text)}
+        />
+      </View>
       <DateSelectionButton selectedDate={selectedDate} onPress={toggleCalendar} />
       {showCalendar && (
         <Calendar
@@ -169,17 +178,6 @@ const InformationFormScreen = ({ navigation }) => {
           }}
         />
       )}
-      <View style={styles.inputView}>
-        <TextInput
-          style={styles.inputText}
-          placeholderTextColor="#003f5c"
-          placeholder="Contact Number"
-          keyboardType="phone-pad"
-          value={contactNumber}
-          onChangeText={(text) => setContactNumber(text)}
-        />
-      </View>
-
       <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
         <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>

@@ -1,182 +1,189 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { styles } from '../../styles/authenticationStyles/InformationFormStyles';
-import { supabase } from '../../lib/supabaseConfig';
+import { supabase } from '../../supabase/supabaseConfig';
 import { UserContext } from '../../App';
+import { Calendar } from 'react-native-calendars';
+import { Ionicons } from '@expo/vector-icons';
 
-const InformationFormScreen = ({ navigation, onLogin }) => {
+const InformationFormScreen = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
+  const [dateOfBirth, setDataOfBirth] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [hospitalOrClinic, setHospitalOrClinic] = useState('');
-  const [specialization, setSpecialization] = useState('');
-  const { setUserID,userID, setMedicalProfessionalId,medicalProfessionalId, userEmail } = useContext(UserContext);
+  const [gender, setGender] = useState('');
+  const [address, setAddress] = useState('');
+  const [medicalHistory, setMedicalHistory] = useState('');
+  const { userID, setPatientId,patientId, userEmail,password } = useContext(UserContext);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+
+  const DateSelectionButton = ({ selectedDate, onPress }) => {
+    return (
+      <TouchableOpacity style={styles.inputView} onPress={onPress}>
+        {selectedDate ? (
+          <Text style={styles.inputText}>{selectedDate}</Text>
+        ) : (
+          <Text style={styles.placeholderText}>Date Of Birth</Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const handleDateSelection = (day) => {
+    setDataOfBirth(day.dateString);
+    setSelectedDate(day.dateString);
+    setShowCalendar(false);
+  };
+
+  const toggleCalendar = () => {
+    setShowCalendar(!showCalendar);
+  };
 
   useEffect(() => {
-    handleConfirmationEmail();
     console.log(userID);
-    console.log(medicalProfessionalId);
-  }, [userID, medicalProfessionalId, userEmail]);
+    console.log(patientId);
+  }, [userID, patientId, userEmail]);
 
   
-  const handleConfirmationEmail = async () => {
-    const response = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
-
-    const { user, error } = response.data;
-
-    if (error) {
-      console.log(error);
-      return;
-    }
-
-    if (user) {
-      console.log(user);
-      setUserID(user.id);
-      console.log(userID);
-    } else {
-      alert('Please confirm your email. Please try again.');
-    }
-  };
-
   const handleSubmit = async () => {
     try {
-      const { data, error } = await supabase
-        .from('medicalprofessionals')
-        .select('medical_professional_id')
-        .order('medical_professional_id', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Error retrieving max medical professional ID:', error);
-        return;
-      }
-
-      const maxId = data[0]?.medical_professional_id || 0;
-      const newProfessionalId = maxId + 1;
-
-      const { error: createMedicalProfessionalError } = await supabase
-        .from('medicalprofessionals')
+      // Add user to the users table
+      const { error: createUserError } = await supabase
+        .from('users')
         .insert([
           {
-            medical_professional_id: newProfessionalId,
-            first_name: firstName,
-            last_name: lastName,
-            job_title: jobTitle,
-            contact_number: contactNumber,
-            hospital_or_clinic: hospitalOrClinic,
-            specialization: specialization,
-            email: userEmail,
-            user_id: userID
+            user_id: userID,
+            user_role: 'Patient',
           },
         ]);
-
-      if (createMedicalProfessionalError) {
-        console.error('Error creating new medical Professional:', createMedicalProfessionalError);
+  
+      if (createUserError) {
+        console.error('Error creating new user:', createUserError);
         return;
       }
-
-      console.log('New medical professional added successfully');
-
+  
+      const { data, error } = await supabase
+        .from('patients')
+        .select('patient_id')
+        .order('patient_id', { ascending: false })
+        .limit(1);
+  
+      if (error) {
+        console.error('Error retrieving max patient ID:', error);
+        return;
+      }
+  
+      const maxId = data[0]?.patient_id || 0;
+      const newPatientId = maxId + 1;
+  
+      const { error: createPatientError } = await supabase
+        .from('patients')
+        .insert([
+          {
+            patient_id: newPatientId,
+            first_name: firstName,
+            last_name: lastName,
+            date_of_birth: dateOfBirth,
+            contact_number: contactNumber,
+            gender: gender,
+            address: address,
+            email: userEmail,
+            user_id: userID,
+            medical_history: medicalHistory,
+          },
+        ]);
+  
+      if (createPatientError) {
+        console.error('Error creating new Patient:', createPatientError);
+        return;
+      }
+  
+      console.log('New Patient added successfully');
+  
       setFirstName('');
       setLastName('');
-      setJobTitle('');
+      setMedicalHistory('');
       setContactNumber('');
-      setHospitalOrClinic('');
-      setSpecialization('');
-
-      setMedicalProfessionalId(newProfessionalId); // Update the medicalProfessionalId in the context
-      console.log(medicalProfessionalId);
-
-      onLogin(newProfessionalId, userID);
+      setDataOfBirth('');
+      setGender('');
+      setAddress('');
+  
+      setPatientId(newPatientId); // Update the medicalPatientId in the context
+      navigation.navigate('Medical Professional');
+      //onLogin(newPatientId, userID,password);
     } catch (error) {
-      console.error('Error adding new medical professional:', error);
-    }
-  };
-
-  const handleCancel = async () => {
-    try {
-      const { error } = await supabase.from('users').delete().match({ user_id: userID });
-
-      if (error) {
-        console.error('Error deleting user data:', error);
-        return;
-      }
-
-      console.log('User data deleted successfully');
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error deleting user data:', error);
+      console.error('Error adding new Patient:', error);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Personal Information</Text>
-        <View style={styles.form}>
-          <Text style={styles.label}>First Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="First Name"
-            value={firstName}
-            onChangeText={(text) => setFirstName(text)}
-          />
-
-          <Text style={styles.label}>Last Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Last Name"
-            value={lastName}
-            onChangeText={(text) => setLastName(text)}
-          />
-
-          <Text style={styles.label}>Job Title</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Job Title"
-            value={jobTitle}
-            onChangeText={(text) => setJobTitle(text)}
-          />
-
-          <Text style={styles.label}>Hospital or Clinic</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Hospital or Clinic"
-            value={hospitalOrClinic}
-            onChangeText={(text) => setHospitalOrClinic(text)}
-          />
-
-          <Text style={styles.label}>Specialization</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Specialization"
-            value={specialization}
-            onChangeText={(text) => setSpecialization(text)}
-          />
-
-          <Text style={styles.label}>Contact Number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Contact Number"
-            keyboardType="phone-pad"
-            value={contactNumber}
-            onChangeText={(text) => setContactNumber(text)}
-          />
-
-          <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>Personal Information</Text>
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholder="First Name"
+          placeholderTextColor="#003f5c"
+          value={firstName}
+          onChangeText={(text) => setFirstName(text)}
+        />
       </View>
-    </ScrollView>
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholder="Last Name"
+          placeholderTextColor="#003f5c"
+          value={lastName}
+          onChangeText={(text) => setLastName(text)}
+        />
+      </View>
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholder="Gender"
+          placeholderTextColor="#003f5c"
+          value={gender}
+          onChangeText={(text) => setGender(text)}
+        />
+      </View>
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholderTextColor="#003f5c"
+          placeholder="Address"
+          value={address}
+          onChangeText={(text) => setAddress(text)}
+        />
+      </View>
+      <DateSelectionButton selectedDate={selectedDate} onPress={toggleCalendar} />
+      {showCalendar && (
+        <Calendar
+          onDayPress={handleDateSelection}
+          minDate={'1900-01-01'}
+          maxDate={'9999-12-31'} 
+          markedDates={{ [selectedDate]: { selected: true } }}
+          theme={{
+            selectedDayBackgroundColor: '#fb5b5a',
+            selectedDayTextColor: '#ffffff',
+          }}
+        />
+      )}
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholderTextColor="#003f5c"
+          placeholder="Contact Number"
+          keyboardType="phone-pad"
+          value={contactNumber}
+          onChangeText={(text) => setContactNumber(text)}
+        />
+      </View>
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+        <Text style={styles.saveButtonText}>Save</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 

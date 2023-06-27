@@ -7,6 +7,8 @@ import TabNavigator from './navigation/TabNavigator';
 import LoginScreen from './screens/authenticationScreens/LoginScreen';
 import SignupScreen from './screens/authenticationScreens/SignupScreen';
 import ForgotScreen from './screens/authenticationScreens/ForgotScreen';
+import InformationFormScreen from './screens/authenticationScreens/InformationFormScreen';
+import PatientMedicalProfessionalScreen from './screens/authenticationScreens/PatientMedicalProfessionalScreen';
 export const UserContext = createContext(); // Create the UserContext
 
 const Stack = createNativeStackNavigator();
@@ -16,6 +18,8 @@ export default function App() {
   const [patientId, setPatientId, ] = useState(0);
   const [userID, setUserID, ] = useState(0);
   const [userPassword, setUserPassword, ] = useState('');
+  const [userEmail, setUserEmail, ] = useState('');
+  
   const handleLogin = (patientId,userId,password) => {
     setIsLoggedIn(true);
     setUserID(userId);
@@ -29,6 +33,7 @@ export default function App() {
     setUserID(0);
     setPatientId(0);
     setUserPassword('');
+    setUserEmail('');
   };
 
   useEffect(() => {
@@ -44,6 +49,8 @@ export default function App() {
       setPatientId,
       setUserPassword,
       userPassword,
+      userEmail,
+      setUserEmail,
     }}
   >
       <NavigationContainer>
@@ -57,15 +64,16 @@ export default function App() {
               </Stack.Screen>
               <Stack.Screen name="Signup Screen" component={SignupScreen} />
               <Stack.Screen name="Forgot Screen" component={ForgotScreen} />
+              <Stack.Screen name="Information Form" component={InformationFormScreen} />
               <Stack.Screen
-                name="Information Form"
+                name="Medical Professional"
                 options={{
                   headerShown: false,
                   headerBackVisible: false,
                 }}
               >
                 {(props) => (
-                  <InformationFormScreen {...props} onLogin={handleLogin} />
+                  <PatientMedicalProfessionalScreen {...props} onLogin={handleLogin} />
                 )}
               </Stack.Screen>
             </>

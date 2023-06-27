@@ -51,6 +51,30 @@ const Notifications = () => {
     setNotifications((prevNotifications) => [...prevNotifications, newNotification]);
   };
 
+  useEffect(() => {
+    fetchNotifications();
+
+    // Subscribe to the channel for new notification events
+    const updateNotificationSubscription = supabase
+      .channel('update-notification-chanel')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+      }, handleUpdateNotification)
+      .subscribe();
+
+    // Unsubscribe from the channel when the component unmounts
+    return () => {
+      updateNotificationSubscription.unsubscribe();
+    };
+  }, []);
+
+  
+  const handleUpdateNotification = (payload) => {
+    fetchNotifications();
+  }
+
   const handleNotificationPress = (notification) => {
     console.log('Notification Pressed:', notification);
   };
